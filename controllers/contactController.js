@@ -32,7 +32,7 @@ const deleteContactById = async (req, res, next) => {
 const updateSomeContact = async (req, res, next) => {
   const { contactId } = req.params;
   const { body } = req;
-  const contactToUpdate = await Contact.findByIdAndUpdate(contactId, body);
+  const contactToUpdate = await Contact.findByIdAndUpdate(contactId, body, {new: true});
   if (contactToUpdate) {
     return res.status(200).json({ data: contactToUpdate });
   }
@@ -42,7 +42,7 @@ const updateSomeContact = async (req, res, next) => {
 const updateStatusContact = async (req, res, next) => {
   const { contactId } = req.params;
   const { favorite } = req.body;
-  const contactToUpdate = await Contact.findByIdAndUpdate(contactId, { favorite });
+  const contactToUpdate = await Contact.findByIdAndUpdate(contactId, { favorite }, {new: true});
   if (!favorite && favorite !== false) {
     res.status(400).json({ message: "missing field favorite" });
   }
