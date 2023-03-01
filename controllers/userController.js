@@ -14,7 +14,6 @@ const register = async (req, res) => {
   }
   
     const newUser = new User({ email, password });
-    newUser.setPassword(password);
     newUser.save();
     return res.status(201).json({
       data: {
