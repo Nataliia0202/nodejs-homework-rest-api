@@ -8,16 +8,22 @@ dotenv.config();
 const { JWT_SECRET } = process.env;
 
 const auth = async (req, res, next) => {
-  const authHeader = req.headers.authorization || "";
-  const [tokenType, token] = authHeader.split(" ");
-  if (tokenType === "Bearer" && token) {
+  const { authorization = "" } = req.headers;
+  const [bearer, token] = authorization.split(" ");
+  if (bearer !== "Bearer") {
+    throw new Unauthorized("Not authorized");
+  }
+  try {
     const verifiedToken = jwt.verify(token, JWT_SECRET);
     const user = await User.findById(verifiedToken._id);
-    if (!user || !user.token) {
+    if (!user || !user.token || user.token !== token) {
       throw new Unauthorized("Not authorized");
     }
     req.user = user;
-    return next();
+    next();
+  }
+  catch {
+    next(Unauthorized("Not authorized"));
   }
 };
 
