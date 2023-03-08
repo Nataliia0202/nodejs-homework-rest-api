@@ -2,13 +2,15 @@ const { Contact } = require("../models/contacts.model");
 const { createNotFoundError } = require("../helpers");
 
 const getAllContacts = async (req, res) => {
-  const allContacts = await Contact.find();
+  const { _id: userId } = req.user;
+  const allContacts = await Contact.find({ owner: userId });
   res.status(200).json({ data: allContacts });
 };
 
 const getOneContactById = async (req, res, next) => {
   const { contactId } = req.params;
-  const contact = await Contact.findById(contactId);
+  const { _id: userId } = req.user;
+  const contact = await Contact.findById({ _id: contactId, owner: userId });
   if (contact) {
     return res.status(200).json({ data: contact });
   }
@@ -16,13 +18,24 @@ const getOneContactById = async (req, res, next) => {
 };
 
 const addNewContact = async (req, res) => {
-  const newContact = await Contact.create(req.body);
+  const { name, email, phone } = req.body;
+  const { _id: userId } = req.user;
+  const newContact = await Contact.create({
+    name,
+    email,
+    phone,
+    owner: userId,
+  });
   res.status(201).json({ data: newContact });
 };
 
 const deleteContactById = async (req, res, next) => {
   const { contactId } = req.params;
-  const contactToDelete = await Contact.findByIdAndDelete(contactId);
+   const { _id: userId } = req.user;
+   const contactToDelete = await Contact.findByIdAndDelete({
+     _id: contactId,
+     owner: userId,
+   });
   if (contactToDelete) {
     return res.status(200).json({ message: "Contact deleted" });
   }
@@ -31,8 +44,12 @@ const deleteContactById = async (req, res, next) => {
 
 const updateSomeContact = async (req, res, next) => {
   const { contactId } = req.params;
-  const { body } = req;
-  const contactToUpdate = await Contact.findByIdAndUpdate(contactId, body, {new: true});
+  const { name, email, phone } = req.body;
+  const { _id: userId } = req.user;
+  const contactToUpdate = await Contact.findByIdAndUpdate(
+    { _id: contactId, owner: userId },
+    { $set: { name, email, phone } }
+  );
   if (contactToUpdate) {
     return res.status(200).json({ data: contactToUpdate });
   }
@@ -42,7 +59,12 @@ const updateSomeContact = async (req, res, next) => {
 const updateStatusContact = async (req, res, next) => {
   const { contactId } = req.params;
   const { favorite } = req.body;
-  const contactToUpdate = await Contact.findByIdAndUpdate(contactId, { favorite }, {new: true});
+  const { _id: userId } = req.user;
+  const contactToUpdate = await Contact.findByIdAndUpdate(
+    { _id: contactId, owner: userId },
+    { favorite },
+    { new: true }
+  );
   if (!favorite && favorite !== false) {
     res.status(400).json({ message: "missing field favorite" });
   }

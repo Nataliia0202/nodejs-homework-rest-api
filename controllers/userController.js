@@ -1,8 +1,11 @@
 const { User } = require("../models/user.model");
 const { Conflict, Unauthorized } = require("http-errors");
-
+const gravatar = require("gravatar")
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const path = require("path");
+const fs = require("fs/promises");
+const Jimp = require("jimp");
 
 const { JWT_SECRET } = process.env;
 
@@ -12,14 +15,15 @@ const register = async (req, res) => {
     if (user) {
       throw new Conflict("Email is already in use"); 
   }
-  
-    const newUser = new User({ email, password });
+  const avatarURL = gravatar.url(email);
+    const newUser = new User({ email, password, avatarURL });
     newUser.save();
     return res.status(201).json({
       data: {
         user: {
           email: newUser.email,
           subscription: newUser.subscription,
+          avatarURL: newUser.avatarURL,
         },
       },
     });
@@ -69,9 +73,30 @@ const current = async (req, res) => {
   return res.status(401).json({ message: "Not authorized" });
 };
 
+const avatarsDir = path.join(__dirname, "../public/avatars");
+
+const updateAvatar = async (req, res) => {
+  const { path: tempUpload, originalname } = req.file;
+  const { _id: id } = req.user;
+  const imageName = `${id}_${originalname}`;
+  try {
+    const image = await Jimp.read(tempUpload);
+    await image.resize(250, 250).writeAsync(tempUpload);
+    const resultUpload = path.join(avatarsDir, imageName);
+    await fs.rename(tempUpload, resultUpload);
+    const avatarURL = path.join("public", "avatars", imageName);
+    await User.findByIdAndUpdate(req.user._id, { avatarURL });
+    res.json({ avatarURL });
+  } catch (error) {
+    await fs.unlink(tempUpload);
+    throw error;
+  }
+};
+
 module.exports = {
   register,
   login,
   logout,
   current,
+  updateAvatar,
 };

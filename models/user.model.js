@@ -22,7 +22,10 @@ const userSchema = new Schema(
       type: String,
       default: null,
     },
-    
+    avatarURL: {
+      type: String,
+      require: true,
+    },
   },
   {
     timestamps: true,
