@@ -6,8 +6,8 @@ const addContactSchema = Joi.object({
     .email({
       minDomainSegments: 2,
       tlds: { allow: ["com", "net"] },
-    })
-    .required(),
+    }),
+    
   phone: Joi.string().min(10).max(14).required(),
 });
 
@@ -25,6 +25,7 @@ const changeContactStatusSchema = Joi.object({
 });
 
 const authSchema = Joi.object({
+  name: Joi.string(),
   email: Joi.string()
     .email({
       minDomainSegments: 2,

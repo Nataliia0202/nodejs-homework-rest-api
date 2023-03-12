@@ -20,3 +20,4 @@ router.post("/logout", tryCatchWrapper(auth), tryCatchWrapper(users.logout));
 router.post("/current", tryCatchWrapper(auth), tryCatchWrapper(users.current));
 
 module.exports = router;
+

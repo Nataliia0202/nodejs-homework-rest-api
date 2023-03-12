@@ -7,17 +7,18 @@ const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = process.env;
 
 const register = async (req, res) => {
-  const { email, password } = req.body;
+  const { name, email, password } = req.body;
   const user = await User.findOne({ email });
     if (user) {
       throw new Conflict("Email is already in use"); 
   }
   
-    const newUser = new User({ email, password });
+    const newUser = new User({ name, email, password });
     newUser.save();
     return res.status(201).json({
       data: {
         user: {
+          name: newUser.name,
           email: newUser.email,
           subscription: newUser.subscription,
         },
